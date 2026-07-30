@@ -25,20 +25,22 @@
 -- After creating users in the Auth dashboard, run this to set roles:
 -- ============================================================
 
--- Update supervisor profile
-UPDATE profiles 
-SET 
-  display_name = 'Supervisor1',
-  role = 'supervisor',
-  department = 'Marketing'
+INSERT INTO public.profiles (id, display_name, email, role, department)
+SELECT 
+  id, 
+  COALESCE(raw_user_meta_data->>'display_name', split_part(email, '@', 1)), 
+  email, 
+  'member', 
+  'Marketing'
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;
+
+UPDATE public.profiles
+SET display_name = 'Supervisor1', role = 'supervisor', department = 'Marketing'
 WHERE email = 'stlaf_supervisor1@gmail.com';
 
--- Update member profile
-UPDATE profiles 
-SET 
-  display_name = 'Member1',
-  role = 'member',
-  department = 'Marketing'
+UPDATE public.profiles
+SET display_name = 'Member1', role = 'member', department = 'Marketing'
 WHERE email = 'stlaf_member1@gmail.com';
 
 -- Optional team members
