@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Eye, EyeOff, LogIn, AlertCircle, Loader2 } from 'lucide-react'
-import stlafLogo from '../../STLAF_LOGO.png'
+import stlafLogo from '/STLAF_LOGO.png'
 
 export default function Login() {
   const [email, setEmail] = useState('')
