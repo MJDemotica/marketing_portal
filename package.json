@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node -e \"require('fs').copyFileSync('STLAF_LOGO.png', 'public/STLAF_LOGO.png')\" && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

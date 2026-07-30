@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Eye, EyeOff, LogIn, AlertCircle, Loader2 } from 'lucide-react'
+import stlafLogo from '../../STLAF_LOGO.png'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -14,14 +15,17 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
+    if (!email || !password) return
+
     setLoading(true)
+    setError('')
 
     try {
       await login(email, password)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err.message || 'Invalid email or password. Please try again.')
+      console.error('Login error:', err)
+      setError(err.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -38,8 +42,8 @@ export default function Login() {
       <div className="relative w-full max-w-md">
         {/* Logo header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-navy-800/80 border border-white/10 p-2 shadow-xl mb-4">
-            <img src="/STLAF_LOGO.png" alt="STLAF Logo" className="w-full h-full object-contain" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-navy-800/80 border border-white/10 p-2 shadow-xl mb-4 overflow-hidden">
+            <img src={stlafLogo} alt="STLAF Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-white">Marketing Portal</h1>
           <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>

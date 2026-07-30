@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
+import stlafLogo from '../../STLAF_LOGO.png'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -61,8 +62,8 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
       {/* Header row: logo + close/collapse buttons */}
       <div className="px-5 pt-6 pb-4 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-navy-900 border border-white/10 flex items-center justify-center flex-shrink-0 p-1">
-            <img src="/STLAF_LOGO.png" alt="STLAF Logo" className="w-full h-full object-contain" />
+          <div className="w-10 h-10 rounded-lg bg-navy-900 border border-white/10 flex items-center justify-center flex-shrink-0 p-1 overflow-hidden">
+            <img src={stlafLogo} alt="STLAF Logo" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <h1 className="text-white font-semibold text-base leading-tight truncate">
