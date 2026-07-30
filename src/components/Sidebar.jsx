@@ -61,8 +61,8 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
       {/* Header row: logo + close/collapse buttons */}
       <div className="px-5 pt-6 pb-4 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-brand-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm tracking-wide">LAF</span>
+          <div className="w-10 h-10 rounded-lg bg-navy-900 border border-white/10 flex items-center justify-center flex-shrink-0 p-1">
+            <img src="/STLAF_LOGO.png" alt="STLAF Logo" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <h1 className="text-white font-semibold text-base leading-tight truncate">
@@ -132,10 +132,18 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
         <div className="px-4 py-4 space-y-3">
           {/* User info */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-brand-500/30 border border-brand-400/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-brand-300 font-semibold text-xs">
-                {initials}
-              </span>
+            <div className="w-9 h-9 rounded-full bg-brand-500/30 border border-brand-400/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-brand-300 font-semibold text-xs">
+                  {initials}
+                </span>
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-white text-sm font-medium truncate">

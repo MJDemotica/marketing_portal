@@ -10,6 +10,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { useDashboardData } from '../hooks/useDashboardData'
+import { useAuth } from '../contexts/AuthContext'
 import CreateTaskModal from '../components/CreateTaskModal'
 
 const statusColors = {
@@ -27,6 +28,7 @@ const statusLabels = {
 }
 
 export default function Home() {
+  const { isSupervisor } = useAuth()
   const { tasks, loading, error, refetch, summary, bottlenecks, supervisorFocus, memberStats } = useDashboardData()
   const [showCreateModal, setShowCreateModal] = useState(false)
 
@@ -140,13 +142,15 @@ export default function Home() {
             <FileDown size={16} />
             Export CSV
           </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
-          >
-            <Plus size={16} />
-            Create New Task
-          </button>
+          {isSupervisor && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
+            >
+              <Plus size={16} />
+              Create New Task
+            </button>
+          )}
         </div>
       </div>
 

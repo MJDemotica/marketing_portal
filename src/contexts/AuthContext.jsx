@@ -86,6 +86,22 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  // Update avatar URL
+  async function updateAvatarUrl(avatarUrl) {
+    if (!profile) return
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+      .eq('id', profile.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    setProfile(data)
+    return data
+  }
+
   // Update password
   async function updatePassword(newPassword) {
     const { error } = await supabase.auth.updateUser({
@@ -102,6 +118,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     updateDisplayName,
+    updateAvatarUrl,
     updatePassword,
     isSupervisor: profile?.role === 'supervisor',
     isMember: profile?.role === 'member',

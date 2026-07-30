@@ -9,23 +9,33 @@ export default {
     extend: {
       colors: {
         navy: {
-          900: '#0a1128',
-          800: '#0f1a3c',
-          700: '#162250',
-          600: '#1d2d66',
-          500: '#2a3f80',
+          900: '#1A2634', // Midnight Cyan
+          800: '#123765', // Prussian Blue
+          700: '#1a467c', // Prussian Blue accent
+          600: '#3E5E72', // Secondary Dark Slate
+          500: '#365794', // Secondary Deep Royal Blue
         },
         brand: {
-          50: '#eef2ff',
-          100: '#dce5ff',
-          200: '#b9cbff',
-          300: '#85a5ff',
-          400: '#5b82ff',
-          500: '#3b63f7',
-          600: '#2549db',
-          700: '#1d3ab8',
-          800: '#1c3296',
-          900: '#1c2e76',
+          50: '#fdfbf2',
+          100: '#faf4db',
+          200: '#f7ecc3',
+          300: '#f3e49e',
+          400: '#EBD47A', // Secondary Soft Gold
+          500: '#CCAA49', // Laurel Gold (Primary Brand Accent)
+          600: '#b8963b', // Darker Laurel Gold
+          700: '#96782c',
+          800: '#123765', // Prussian Blue
+          900: '#1A2634', // Midnight Cyan
+        },
+        stlaf: {
+          midnight: '#1A2634',
+          gold: '#CCAA49',
+          prussian: '#123765',
+          softGold: '#EBD47A',
+          cyan: '#5F98B6',
+          slate: '#3E5E72',
+          mutedBlue: '#6492B1',
+          royal: '#365794',
         },
         surface: {
           50: '#f8f9fc',

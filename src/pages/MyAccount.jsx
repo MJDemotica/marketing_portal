@@ -10,12 +10,44 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  Camera,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
 export default function MyAccount() {
-  const { profile, updateDisplayName, updatePassword } = useAuth()
+  const { profile, updateDisplayName, updateAvatarUrl, updatePassword } = useAuth()
+
+  // Avatar upload state
+  const [avatarLoading, setAvatarLoading] = useState(false)
+  const [avatarSuccess, setAvatarSuccess] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+
+  function handleAvatarFileChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setAvatarError('')
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Image must be under 2MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = async () => {
+      try {
+        setAvatarLoading(true)
+        await updateAvatarUrl(reader.result)
+        setAvatarSuccess(true)
+        setTimeout(() => setAvatarSuccess(false), 3000)
+      } catch (err) {
+        setAvatarError(err.message || 'Failed to update photo')
+      } finally {
+        setAvatarLoading(false)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
 
   // Display name state
   const [newDisplayName, setNewDisplayName] = useState('')
@@ -161,15 +193,48 @@ export default function MyAccount() {
       <div className="card p-6">
         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Profile</h3>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-brand-500/15 border-2 border-brand-400/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-brand-500 dark:text-brand-400 font-bold text-xl">
-              {initials}
-            </span>
-          </div>
-          <div className="space-y-1">
-            <p className="text-lg font-semibold text-slate-800 dark:text-white">
-              {profile?.display_name || 'Loading...'}
-            </p>
+          {/* Avatar with click & hover upload overlay */}
+          <label className="relative w-20 h-20 rounded-full bg-brand-500/15 border-2 border-brand-400/30 flex items-center justify-center flex-shrink-0 cursor-pointer group overflow-hidden shadow-md">
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.display_name}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <span className="text-brand-500 dark:text-brand-400 font-bold text-2xl">
+                {initials}
+              </span>
+            )}
+
+            {/* Hover Camera Overlay */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {avatarLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <>
+                  <Camera size={20} />
+                  <span className="text-[9px] font-medium tracking-tight mt-0.5">Change</span>
+                </>
+              )}
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarFileChange}
+              disabled={avatarLoading}
+              className="hidden"
+            />
+          </label>
+
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-lg font-semibold text-slate-800 dark:text-white truncate">
+                {profile?.display_name || 'Loading...'}
+              </p>
+            </div>
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Mail size={14} />
               <span>{profile?.email || '...'}</span>
@@ -184,6 +249,17 @@ export default function MyAccount() {
                 {profile?.department || 'Marketing'}
               </span>
             </div>
+
+            {avatarSuccess && (
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium pt-1">
+                ✓ Profile photo updated!
+              </p>
+            )}
+            {avatarError && (
+              <p className="text-xs text-red-500 font-medium pt-1">
+                {avatarError}
+              </p>
+            )}
           </div>
         </div>
       </div>

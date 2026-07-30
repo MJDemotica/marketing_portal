@@ -55,11 +55,11 @@ body {
 }
 
 .sidebar-nav-item:hover {
-  @apply bg-white/10;
+  @apply bg-white/10 text-white;
 }
 
 .sidebar-nav-item.active {
-  @apply bg-white/15 text-white;
+  @apply bg-brand-500/20 text-brand-300 border-l-2 border-brand-500 font-semibold shadow-sm;
 }
 
 .sidebar-nav-item:not(.active) {

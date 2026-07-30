@@ -38,8 +38,8 @@ export default function Login() {
       <div className="relative w-full max-w-md">
         {/* Logo header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-brand-500 shadow-lg shadow-brand-500/25 mb-4">
-            <span className="text-white font-bold text-lg tracking-wide">LAF</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-navy-800/80 border border-white/10 p-2 shadow-xl mb-4">
+            <img src="/STLAF_LOGO.png" alt="STLAF Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-white">Marketing Portal</h1>
           <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
