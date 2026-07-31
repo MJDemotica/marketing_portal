@@ -102,15 +102,23 @@ export function useAdminData() {
     }
   }
 
-  // Delete member profile
+  // Delete member account (from both auth.users and profiles)
   const deleteMember = async (memberId) => {
     try {
-      const { error: delErr } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', memberId)
+      // 1. Try RPC function delete_user_account (deletes from auth.users + profiles)
+      const { error: rpcErr } = await supabase.rpc('delete_user_account', { user_id: memberId })
 
-      if (delErr) throw delErr
+      if (rpcErr) {
+        console.warn('RPC delete_user_account error, falling back to profiles table delete:', rpcErr)
+        // 2. Fallback: delete from profiles table
+        const { error: delErr } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', memberId)
+
+        if (delErr) throw delErr
+      }
+
       await fetchData()
       return true
     } catch (err) {
