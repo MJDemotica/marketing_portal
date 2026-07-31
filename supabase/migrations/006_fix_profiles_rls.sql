@@ -28,3 +28,11 @@ CREATE POLICY "Users can update their own profile"
   TO authenticated
   USING (id = auth.uid() OR get_user_role() = 'supervisor')
   WITH CHECK (id = auth.uid() OR get_user_role() = 'supervisor');
+
+-- 5. Allow Supervisors to delete profiles from Admin Center
+DROP POLICY IF EXISTS "Supervisors can delete profiles" ON profiles;
+CREATE POLICY "Supervisors can delete profiles"
+  ON profiles FOR DELETE
+  TO authenticated
+  USING (get_user_role() = 'supervisor');
+
