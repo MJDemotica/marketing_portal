@@ -90,11 +90,10 @@ export function useAdminData() {
         })
         .eq('id', memberId)
         .select()
-        .maybeSingle()
 
       if (updateErr) throw updateErr
       await fetchData()
-      return data
+      return data?.[0] || null
     } catch (err) {
       console.error('Error updating member:', err)
       throw err
