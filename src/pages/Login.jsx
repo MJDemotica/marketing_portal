@@ -105,11 +105,12 @@ export default function Login() {
           </button>
 
           {/* Divider */}
-          <div className="relative flex items-center justify-center my-4">
-            <div className="border-t border-white/10 w-full" />
-            <span className="bg-navy-900 px-3 text-xs text-slate-400 font-medium uppercase tracking-wider relative">
-              Or continue with email
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-white/15" />
+            <span className="text-[11px] text-slate-300 font-semibold uppercase tracking-wider whitespace-nowrap">
+              or continue with email
             </span>
+            <div className="flex-1 h-px bg-white/15" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

@@ -244,11 +244,20 @@ CREATE POLICY "All authenticated users can view departments"
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, display_name, email, role, department)
+  INSERT INTO profiles (id, display_name, email, avatar_url, role, department)
   VALUES (
     NEW.id,
-    COALESCE(NULLIF(NEW.raw_user_meta_data->>'display_name', ''), split_part(NEW.email, '@', 1)),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+      NULLIF(NEW.raw_user_meta_data->>'name', ''),
+      NULLIF(NEW.raw_user_meta_data->>'display_name', ''),
+      split_part(NEW.email, '@', 1)
+    ),
     NEW.email,
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'avatar_url', ''),
+      NULLIF(NEW.raw_user_meta_data->>'picture', '')
+    ),
     CASE 
       WHEN NEW.raw_user_meta_data->>'role' IN ('supervisor', 'member') THEN NEW.raw_user_meta_data->>'role'
       ELSE 'member'
@@ -257,11 +266,12 @@ BEGIN
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
+    avatar_url = COALESCE(profiles.avatar_url, EXCLUDED.avatar_url),
+    display_name = COALESCE(profiles.display_name, EXCLUDED.display_name),
     updated_at = now();
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
-  -- Fallback so auth.users creation never fails even if profile insert has an edge case error
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

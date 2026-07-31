@@ -9,18 +9,63 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   // Fetch user profile from profiles table
-  async function fetchProfile(userId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+  async function fetchProfile(userObj) {
+    if (!userObj) return null
+    const userId = userObj.id || userObj
 
-    if (error) {
-      console.error('Error fetching profile:', error)
+    try {
+      let { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+
+      const meta = userObj.user_metadata || userObj.raw_user_meta_data || {}
+      const googleName = meta.full_name || meta.name || meta.display_name || userObj.email?.split('@')[0] || 'User'
+      const googleAvatar = meta.avatar_url || meta.picture || null
+
+      // If profile does not exist yet, auto-create it immediately
+      if (!data) {
+        const { data: newProf, error: insErr } = await supabase
+          .from('profiles')
+          .upsert({
+            id: userId,
+            display_name: googleName,
+            email: userObj.email,
+            avatar_url: googleAvatar,
+            role: 'member',
+            department: 'Marketing',
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (!insErr && newProf) {
+          return newProf
+        }
+      } else {
+        // If profile exists but is missing avatar or display name from Google OAuth, sync it
+        if ((!data.avatar_url && googleAvatar) || (!data.display_name && googleName)) {
+          const { data: updatedProf } = await supabase
+            .from('profiles')
+            .update({
+              avatar_url: data.avatar_url || googleAvatar,
+              display_name: data.display_name || googleName,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', userId)
+            .select()
+            .single()
+
+          if (updatedProf) return updatedProf
+        }
+      }
+
+      return data
+    } catch (err) {
+      console.error('Error fetching profile:', err)
       return null
     }
-    return data
   }
 
   // Initialize auth state
@@ -29,7 +74,7 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession)
       if (currentSession?.user) {
-        const userProfile = await fetchProfile(currentSession.user.id)
+        const userProfile = await fetchProfile(currentSession.user)
         setProfile(userProfile)
       }
       setLoading(false)
@@ -40,7 +85,7 @@ export function AuthProvider({ children }) {
       async (event, currentSession) => {
         setSession(currentSession)
         if (currentSession?.user) {
-          const userProfile = await fetchProfile(currentSession.user.id)
+          const userProfile = await fetchProfile(currentSession.user)
           setProfile(userProfile)
         } else {
           setProfile(null)
