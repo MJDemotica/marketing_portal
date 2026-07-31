@@ -55,7 +55,6 @@ export function useAdminData() {
   // Add member profile manually
   const addMember = async ({ displayName, email, role, department }) => {
     try {
-      // Create profile record (Note: for actual authentication login, user signs up or is created via Auth)
       const fakeId = genRandomUUID()
       const { data, error: insertErr } = await supabase
         .from('profiles')
@@ -67,7 +66,7 @@ export function useAdminData() {
           department: department || 'Marketing',
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (insertErr) throw insertErr
       await fetchData()
@@ -91,7 +90,7 @@ export function useAdminData() {
         })
         .eq('id', memberId)
         .select()
-        .single()
+        .maybeSingle()
 
       if (updateErr) throw updateErr
       await fetchData()
@@ -137,7 +136,7 @@ export function useAdminData() {
           fields: fields || {},
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (insertErr) throw insertErr
       await fetchData()
