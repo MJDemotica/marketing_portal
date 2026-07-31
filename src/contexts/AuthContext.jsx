@@ -62,6 +62,18 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  // Login with Google OAuth
+  async function loginWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    })
+    if (error) throw error
+    return data
+  }
+
   // Logout
   async function logout() {
     const { error } = await supabase.auth.signOut()
@@ -116,6 +128,7 @@ export function AuthProvider({ children }) {
     profile,
     loading,
     login,
+    loginWithGoogle,
     logout,
     updateDisplayName,
     updateAvatarUrl,
