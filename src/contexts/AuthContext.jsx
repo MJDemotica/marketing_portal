@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
       const googleName = meta.full_name || meta.name || meta.display_name || userObj.email?.split('@')[0] || 'User'
       const googleAvatar = meta.avatar_url || meta.picture || null
 
-      // If profile does not exist yet, auto-create it immediately
+      // If profile does not exist in DB yet, auto-create it
       if (!data) {
         const { data: newProf, error: insErr } = await supabase
           .from('profiles')
@@ -42,6 +42,16 @@ export function AuthProvider({ children }) {
 
         if (!insErr && newProf) {
           return newProf
+        }
+
+        // In-memory fallback profile so UI never hangs on Loading...
+        return {
+          id: userId,
+          display_name: googleName,
+          email: userObj.email,
+          avatar_url: googleAvatar,
+          role: 'member',
+          department: 'Marketing',
         }
       } else {
         // If profile exists but is missing avatar or display name from Google OAuth, sync it
@@ -64,7 +74,15 @@ export function AuthProvider({ children }) {
       return data
     } catch (err) {
       console.error('Error fetching profile:', err)
-      return null
+      const meta = userObj.user_metadata || userObj.raw_user_meta_data || {}
+      return {
+        id: userId,
+        display_name: meta.full_name || meta.name || userObj.email?.split('@')[0] || 'User',
+        email: userObj.email,
+        avatar_url: meta.avatar_url || meta.picture || null,
+        role: 'member',
+        department: 'Marketing',
+      }
     }
   }
 
