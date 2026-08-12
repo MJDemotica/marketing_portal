@@ -180,8 +180,39 @@ export function useAdminData() {
     }
   }
 
+  // Approve pending member account
+  const approveMember = async (memberId) => {
+    try {
+      const { data, error: updateErr } = await supabase
+        .from('profiles')
+        .update({
+          status: 'active',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', memberId)
+        .select()
+
+      if (updateErr) throw updateErr
+      await fetchData()
+      return data?.[0] || null
+    } catch (err) {
+      console.error('Error approving member:', err)
+      throw err
+    }
+  }
+
+  // Reject pending member account
+  const rejectMember = async (memberId) => {
+    return await deleteMember(memberId)
+  }
+
+  const pendingMembers = members.filter((m) => m.status === 'pending')
+  const activeMembers = members.filter((m) => m.status !== 'pending')
+
   return {
     members,
+    pendingMembers,
+    activeMembers,
     templates,
     departments,
     loading,
@@ -190,6 +221,8 @@ export function useAdminData() {
     addMember,
     updateMember,
     deleteMember,
+    approveMember,
+    rejectMember,
     createTemplate,
     deleteTemplate,
     resetTaskData,

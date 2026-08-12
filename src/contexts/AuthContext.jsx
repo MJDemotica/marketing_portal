@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
       const googleName = meta.full_name || meta.name || meta.display_name || userObj.email?.split('@')[0] || 'User'
       const googleAvatar = meta.avatar_url || meta.picture || null
 
-      // If profile does not exist in DB yet, auto-create it
+      // If profile does not exist in DB yet, auto-create it as pending approval
       if (!data) {
         const { data: newProf, error: insErr } = await supabase
           .from('profiles')
@@ -35,10 +35,11 @@ export function AuthProvider({ children }) {
             avatar_url: googleAvatar,
             role: 'member',
             department: 'Marketing',
+            status: 'pending',
             updated_at: new Date().toISOString(),
           })
           .select()
-          .single()
+          .maybeSingle()
 
         if (!insErr && newProf) {
           return newProf
@@ -52,6 +53,7 @@ export function AuthProvider({ children }) {
           avatar_url: googleAvatar,
           role: 'member',
           department: 'Marketing',
+          status: 'pending',
         }
       } else {
         // If profile exists but is missing avatar or display name from Google OAuth, sync it
@@ -177,12 +179,12 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  // Update password
-  async function updatePassword(newPassword) {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    })
-    if (error) throw error
+  // Refetch profile (for checking approval status)
+  async function refetchProfile() {
+    if (!session?.user) return null
+    const updated = await fetchProfile(session.user)
+    setProfile(updated)
+    return updated
   }
 
   const value = {
@@ -196,8 +198,11 @@ export function AuthProvider({ children }) {
     updateDisplayName,
     updateAvatarUrl,
     updatePassword,
+    refetchProfile,
     isSupervisor: profile?.role === 'supervisor',
     isMember: profile?.role === 'member',
+    isPending: profile?.status === 'pending',
+    isApproved: profile?.status === 'active' || profile?.status === 'approved' || !profile?.status,
   }
 
   return (

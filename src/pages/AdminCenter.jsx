@@ -14,12 +14,18 @@ import {
   AlertTriangle,
   Key,
   X,
+  UserCheck,
+  UserX,
+  Clock,
+  Check,
 } from 'lucide-react'
 import { useAdminData } from '../hooks/useAdminData'
 
 export default function AdminCenter() {
   const {
     members,
+    pendingMembers,
+    activeMembers,
     templates,
     departments,
     loading,
@@ -28,12 +34,43 @@ export default function AdminCenter() {
     addMember,
     updateMember,
     deleteMember,
+    approveMember,
+    rejectMember,
     createTemplate,
     deleteTemplate,
     resetTaskData,
   } = useAdminData()
 
-  const [activeTab, setActiveTab] = useState('members')
+  const [activeTab, setActiveTab] = useState('pending')
+
+  // Approval action loading states
+  const [approvingId, setApprovingId] = useState(null)
+  const [rejectingId, setRejectingId] = useState(null)
+
+  // Handle Approve Member
+  async function handleApproveMember(memberId) {
+    setApprovingId(memberId)
+    try {
+      await approveMember(memberId)
+    } catch (err) {
+      alert(err.message || 'Failed to approve member')
+    } finally {
+      setApprovingId(null)
+    }
+  }
+
+  // Handle Reject Member
+  async function handleRejectMember(memberId) {
+    if (!window.confirm('Are you sure you want to reject and remove this account registration?')) return
+    setRejectingId(memberId)
+    try {
+      await rejectMember(memberId)
+    } catch (err) {
+      alert(err.message || 'Failed to reject member')
+    } finally {
+      setRejectingId(null)
+    }
+  }
 
   // Modal states
   const [showAddMemberModal, setShowAddMemberModal] = useState(false)
@@ -203,9 +240,10 @@ export default function AdminCenter() {
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex border-b border-surface-200 dark:border-navy-600 space-x-6">
+      <div className="flex border-b border-surface-200 dark:border-navy-600 space-x-6 overflow-x-auto">
         {[
-          { id: 'members', label: `Team Members (${members.length})`, icon: Users },
+          { id: 'pending', label: `Pending Approvals (${pendingMembers.length})`, icon: Clock, badge: pendingMembers.length > 0 },
+          { id: 'members', label: `Active Roster (${activeMembers.length})`, icon: Users },
           { id: 'templates', label: `Templates (${templates.length})`, icon: FileCode2 },
           { id: 'system', label: 'System & Danger Zone', icon: ShieldAlert },
         ].map((tab) => {
@@ -215,7 +253,7 @@ export default function AdminCenter() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-semibold transition-colors whitespace-nowrap relative ${
                 isActive
                   ? 'border-brand-500 text-brand-600 dark:text-brand-400'
                   : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
@@ -223,10 +261,123 @@ export default function AdminCenter() {
             >
               <Icon size={16} />
               {tab.label}
+              {tab.badge && (
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              )}
             </button>
           )
         })}
       </div>
+
+      {/* ============================================================ */}
+      {/* TAB 0: PENDING APPROVALS */}
+      {/* ============================================================ */}
+      {activeTab === 'pending' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Accounts Awaiting Supervisor Review
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                New user signups (Google OAuth & Email) require Supervisor authorization before accessing the portal.
+              </p>
+            </div>
+          </div>
+
+          {pendingMembers.length > 0 ? (
+            <div className="card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-amber-500/10 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-bold uppercase tracking-wider border-b border-surface-200 dark:border-navy-700">
+                      <th className="py-3 px-4">Applicant</th>
+                      <th className="py-3 px-4">Email</th>
+                      <th className="py-3 px-4">Requested Role</th>
+                      <th className="py-3 px-4">Department</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Approval Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-100 dark:divide-navy-700/60 text-xs">
+                    {pendingMembers.map((m) => {
+                      const initials = m.display_name
+                        ? m.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+                        : '??'
+
+                      return (
+                        <tr key={m.id} className="hover:bg-amber-500/5 dark:hover:bg-navy-800/40 transition-colors">
+                          <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {m.avatar_url ? (
+                                  <img src={m.avatar_url} alt={m.display_name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-amber-600 dark:text-amber-400 font-bold text-xs">
+                                    {initials}
+                                  </span>
+                                )}
+                              </div>
+                              <span>{m.display_name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-slate-500 dark:text-slate-400 font-mono">{m.email}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                              {m.role || 'Member'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{m.department || 'Marketing'}</td>
+                          <td className="py-3 px-4">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 animate-pulse">
+                              <Clock size={11} />
+                              Pending Approval
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right space-x-2">
+                            <button
+                              onClick={() => handleApproveMember(m.id)}
+                              disabled={approvingId === m.id || rejectingId === m.id}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition-colors shadow-xs"
+                            >
+                              {approvingId === m.id ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <UserCheck size={14} />
+                              )}
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleRejectMember(m.id)}
+                              disabled={approvingId === m.id || rejectingId === m.id}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 text-xs font-bold transition-colors"
+                            >
+                              {rejectingId === m.id ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <UserX size={14} />
+                              )}
+                              Reject
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="card p-8 text-center space-y-2">
+              <CheckCircle2 size={32} className="text-emerald-500 mx-auto" />
+              <h4 className="font-bold text-slate-800 dark:text-white text-base">No Pending Approvals</h4>
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                All registered accounts have been reviewed and approved.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/* TAB 1: MEMBER MANAGEMENT (CRUD) */}
@@ -264,7 +415,7 @@ export default function AdminCenter() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-100 dark:divide-navy-700/60 text-xs">
-                  {members.map((m) => {
+                  {activeMembers.map((m) => {
                     const initials = m.display_name
                       ? m.display_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
                       : '??'
