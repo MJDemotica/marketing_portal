@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Loader2, Clock, RefreshCw, LogOut } from 'lucide-react'
-import stlafLogo from '../../STLAF_LOGO.png'
 
 export default function ProtectedRoute({ children, requireSupervisor = false }) {
   const { session, profile, loading, isSupervisor, isPending, refetchProfile, logout } = useAuth()
@@ -41,7 +40,7 @@ export default function ProtectedRoute({ children, requireSupervisor = false }) 
         <div className="relative w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 shadow-2xl text-center space-y-6">
           {/* STLAF Logo */}
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-navy-800/80 border border-white/10 p-2 shadow-xl mx-auto overflow-hidden">
-            <img src={stlafLogo} alt="STLAF Logo" className="w-full h-full object-contain" />
+            <img src="/STLAF_LOGO.png" alt="STLAF Logo" className="w-full h-full object-contain" />
           </div>
 
           {/* Pending Clock Icon */}
