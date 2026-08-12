@@ -64,6 +64,7 @@ export function useAdminData() {
           email: email.trim().toLowerCase(),
           role: role || 'member',
           department: department || 'Marketing',
+          status: 'active', // Supervisor-created members are pre-approved
         })
         .select()
         .maybeSingle()

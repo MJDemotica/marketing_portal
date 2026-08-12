@@ -179,6 +179,14 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  // Update password
+  async function updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+    if (error) throw error
+  }
+
   // Refetch profile (for checking approval status)
   async function refetchProfile() {
     if (!session?.user) return null
