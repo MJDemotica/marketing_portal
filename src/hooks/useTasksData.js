@@ -49,9 +49,9 @@ export function useTasksData() {
       // 2. Fetch tasks query
       let query = supabase.from('tasks').select('*').order('created_at', { ascending: false })
 
-      // Members only see tasks assigned to them; Supervisors see all department tasks
+      // Members see tasks assigned to them OR tasks they created; Supervisors see all department tasks
       if (!isSupervisor && profile?.id) {
-        query = query.eq('assignee_id', profile.id)
+        query = query.or(`assignee_id.eq.${profile.id},requestor_id.eq.${profile.id}`)
       }
 
       const { data, error: taskErr } = await query

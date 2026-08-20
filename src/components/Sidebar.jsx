@@ -10,6 +10,7 @@ import {
   LogOut,
   X,
   PanelLeftClose,
+  FileCode2,
 } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
@@ -18,6 +19,7 @@ import stlafLogo from '../../STLAF_LOGO.png'
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/tasks', icon: ClipboardCheck, label: 'Task Management' },
+  { to: '/templates', icon: FileCode2, label: 'Templates' },
   { to: '/review', icon: ClipboardCheck, label: 'Review Panel' },
   { to: '/stats', icon: BarChart3, label: 'Team Stats' },
   { to: '/admin', icon: Settings, label: 'Admin Center', supervisorOnly: true },

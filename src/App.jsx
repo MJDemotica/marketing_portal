@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Tasks from './pages/Tasks'
+import Templates from './pages/Templates'
 import ReviewPanel from './pages/ReviewPanel'
 import TeamStats from './pages/TeamStats'
 import AdminCenter from './pages/AdminCenter'
@@ -34,6 +35,7 @@ export default function App() {
       >
         <Route index element={<Home />} />
         <Route path="tasks" element={<Tasks />} />
+        <Route path="templates" element={<Templates />} />
         <Route path="review" element={<ReviewPanel />} />
         <Route path="stats" element={<TeamStats />} />
         <Route

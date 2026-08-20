@@ -121,16 +121,14 @@ export default function Tasks() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Create Task button (Supervisor only) */}
-          {isSupervisor && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition-colors shadow-sm"
-            >
-              <Plus size={15} />
-              Create Task
-            </button>
-          )}
+          {/* Create Task button (all Marketing team) */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition-colors shadow-sm"
+          >
+            <Plus size={15} />
+            Create Task
+          </button>
 
           {/* View switcher */}
           <div className="flex items-center bg-surface-100 dark:bg-navy-700 rounded-lg p-1">
