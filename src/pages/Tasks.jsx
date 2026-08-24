@@ -14,22 +14,22 @@ const views = [
   { id: 'calendar', icon: Calendar, label: 'Calendar' },
 ]
 
-const statusFilters = [
+const allStatusFilters = [
   { key: 'all', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'assigned', label: 'Assigned' },
   { key: 'in_progress', label: 'In Progress' },
-  { key: 'for_review', label: 'For Review' },
+  { key: 'for_review', label: 'For Review', supervisorOnly: true },
   { key: 'revision', label: 'Revision' },
   { key: 'completed', label: 'Completed' },
   { key: 'disapproved', label: 'Disapproved' },
 ]
 
-const stageSections = [
+const allStageSections = [
   { key: 'pending', label: 'Pending Requests', color: 'bg-slate-400' },
   { key: 'assigned', label: 'Assigned Tasks', color: 'bg-blue-500' },
   { key: 'in_progress', label: 'In Progress', color: 'bg-amber-500' },
-  { key: 'for_review', label: 'For Review', color: 'bg-purple-500' },
+  { key: 'for_review', label: 'For Review', color: 'bg-purple-500', supervisorOnly: true },
   { key: 'revision', label: 'Revision Needed', color: 'bg-red-500' },
   { key: 'completed', label: 'Completed', color: 'bg-green-500' },
   { key: 'disapproved', label: 'Disapproved', color: 'bg-rose-700' },
@@ -46,6 +46,10 @@ export default function Tasks() {
   // Selected task for detail modal
   const [selectedTask, setSelectedTask] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+
+  // Role-conditional status filters and stage sections
+  const statusFilters = allStatusFilters.filter(f => !f.supervisorOnly || isSupervisor)
+  const stageSections = allStageSections.filter(s => !s.supervisorOnly || isSupervisor)
 
   // Collapsed state for List view stage sections
   const [collapsedStages, setCollapsedStages] = useState({})
@@ -270,6 +274,7 @@ export default function Tasks() {
         <KanbanBoard
           tasks={filteredTasks}
           profilesMap={profilesMap}
+          isSupervisor={isSupervisor}
           onTaskClick={(t) => setSelectedTask(t)}
           onTaskEdit={(t) => setSelectedTask(t)}
           onTaskDelete={deleteTask}
@@ -292,6 +297,7 @@ export default function Tasks() {
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
           profilesList={profilesList}
+          profilesMap={profilesMap}
           onUpdate={updateTask}
           onDelete={deleteTask}
         />

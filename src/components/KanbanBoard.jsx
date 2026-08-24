@@ -2,17 +2,20 @@ import { useState } from 'react'
 import TaskCard from './TaskCard'
 import { Plus } from 'lucide-react'
 
-const columns = [
+const allColumns = [
   { key: 'pending', label: 'Pending Requests', color: 'bg-slate-400' },
   { key: 'assigned', label: 'Assigned Tasks', color: 'bg-blue-500' },
   { key: 'in_progress', label: 'In Progress', color: 'bg-amber-500' },
-  { key: 'for_review', label: 'For Review', color: 'bg-purple-500' },
+  { key: 'for_review', label: 'For Review', color: 'bg-purple-500', supervisorOnly: true },
   { key: 'revision', label: 'Revision Needed', color: 'bg-red-500' },
   { key: 'completed', label: 'Completed', color: 'bg-green-500' },
 ]
 
-export default function KanbanBoard({ tasks, profilesMap, onTaskClick, onTaskEdit, onTaskDelete, onUpdateStatus }) {
+export default function KanbanBoard({ tasks, profilesMap, isSupervisor, onTaskClick, onTaskEdit, onTaskDelete, onUpdateStatus }) {
   const [draggedTaskId, setDraggedTaskId] = useState(null)
+
+  // Filter columns by role — Members don't see 'for_review'
+  const columns = allColumns.filter(col => !col.supervisorOnly || isSupervisor)
 
   function handleDragStart(e, taskId) {
     e.dataTransfer.setData('text/plain', taskId)

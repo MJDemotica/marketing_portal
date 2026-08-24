@@ -10,10 +10,13 @@ import {
   Send,
   MessageSquare,
   Sparkles,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useNotifications } from '../hooks/useNotifications'
+import { useCommentsAndLogs } from '../hooks/useCommentsAndLogs'
 import { formatTimeAgo } from '../hooks/useTasksData'
 import { CommentsThread } from '../components/CommentsThread'
 
@@ -329,6 +332,15 @@ export default function ReviewPanel() {
                   </p>
                 )}
 
+                {/* Collapsible Comments Thread */}
+                <ReviewTaskComments
+                  task={task}
+                  profilesMap={profilesMap}
+                  sendNotification={sendNotification}
+                  currentUserId={profile?.id}
+                  currentUserName={profile?.display_name}
+                />
+
                 {/* Supervisor Action Buttons Row: Approve / Hold (Revision) / Disapprove */}
                 <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
                   {isSupervisor ? (
@@ -469,6 +481,74 @@ export default function ReviewPanel() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// Inline component: Collapsible comment thread per review task
+// (Separate component so useCommentsAndLogs hook can be called per task)
+// ============================================================
+function ReviewTaskComments({ task, profilesMap, sendNotification, currentUserId, currentUserName }) {
+  const [expanded, setExpanded] = useState(false)
+  const { comments, addComment } = useCommentsAndLogs(task.id)
+
+  async function handleAddComment(body) {
+    await addComment(body)
+
+    // Send notification to assignee (if not the commenter)
+    if (task.assignee_id && task.assignee_id !== currentUserId) {
+      await sendNotification({
+        userId: task.assignee_id,
+        type: 'comment_posted',
+        message: `${currentUserName || 'Someone'} commented on "${task.title}" (${task.task_code})`,
+        taskId: task.id,
+      })
+    }
+
+    // Send notification to requestor (if different from assignee and not the commenter)
+    if (task.requestor_id && task.requestor_id !== currentUserId && task.requestor_id !== task.assignee_id) {
+      await sendNotification({
+        userId: task.requestor_id,
+        type: 'comment_posted',
+        message: `${currentUserName || 'Someone'} commented on "${task.title}" (${task.task_code})`,
+        taskId: task.id,
+      })
+    }
+  }
+
+  return (
+    <div className="border border-surface-200 dark:border-navy-700 rounded-lg overflow-hidden">
+      {/* Toggle header */}
+      <button
+        type="button"
+        onClick={() => setExpanded(prev => !prev)}
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-50 dark:hover:bg-navy-800/40 transition-colors"
+      >
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <MessageSquare size={14} className="text-brand-500" />
+          Comments
+          {comments.length > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-[10px]">
+              {comments.length}
+            </span>
+          )}
+        </div>
+        <div className="text-slate-400 dark:text-slate-500">
+          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </div>
+      </button>
+
+      {/* Expanded content */}
+      {expanded && (
+        <div className="px-4 pb-4 pt-1 border-t border-surface-200 dark:border-navy-700">
+          <CommentsThread
+            comments={comments}
+            profilesMap={profilesMap}
+            onAddComment={handleAddComment}
+          />
         </div>
       )}
     </div>

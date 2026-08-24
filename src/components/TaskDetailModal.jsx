@@ -6,11 +6,11 @@ import { useAuth } from '../contexts/AuthContext'
 import { CommentsThread } from './CommentsThread'
 import { ActivityLogList } from './ActivityLogList'
 
-const statusOptions = [
+const allStatusOptions = [
   { value: 'pending', label: 'Pending Requests' },
   { value: 'assigned', label: 'Assigned Tasks' },
   { value: 'in_progress', label: 'In Progress' },
-  { value: 'for_review', label: 'For Review (Pending Approval)' },
+  { value: 'for_review', label: 'For Review (Pending Approval)', supervisorOnly: true },
   { value: 'revision', label: 'Revision Needed' },
   { value: 'completed', label: 'Completed' },
   { value: 'disapproved', label: 'Disapproved' },
@@ -25,6 +25,10 @@ const priorityOptions = [
 
 export default function TaskDetailModal({ task, isOpen, onClose, profilesList, profilesMap = {}, onUpdate, onDelete }) {
   const { isSupervisor } = useAuth()
+
+  // Members don't see 'for_review' in the status dropdown
+  const statusOptions = allStatusOptions.filter(opt => !opt.supervisorOnly || isSupervisor)
+
   const [activeTab, setActiveTab] = useState('details')
   const [form, setForm] = useState({
     title: '',
@@ -300,7 +304,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                     </button>
                   )}
 
-                  {/* Member Quick Action: Submit for Review */}
+                  {/* Member Quick Action: Mark Completed */}
                   {!isSupervisor && ['assigned', 'in_progress', 'revision'].includes(form.status) && (
                     <button
                       type="button"
@@ -308,8 +312,8 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                       onClick={async () => {
                         setLoading(true)
                         try {
-                          await onUpdate(task.id, { status: 'for_review' })
-                          await logActivity('status_change', { status: 'for_review' })
+                          await onUpdate(task.id, { status: 'completed' })
+                          await logActivity('status_change', { status: 'completed' })
                           onClose()
                         } catch (err) {
                           setError(err.message)
@@ -317,10 +321,10 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                           setLoading(false)
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors shadow-sm"
                     >
-                      {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                      Submit for Review
+                      {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                      Mark Completed
                     </button>
                   )}
                 </div>

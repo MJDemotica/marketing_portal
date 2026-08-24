@@ -44,6 +44,32 @@ export function useCommentsAndLogs(taskId) {
     fetchData()
   }, [fetchData])
 
+  // Supabase Realtime: subscribe to new comments on this task
+  useEffect(() => {
+    if (!taskId) return
+
+    const channel = supabase
+      .channel(`comments:task_id=${taskId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'comments',
+          filter: `task_id=eq.${taskId}`,
+        },
+        () => {
+          // Refetch to get the new comment with full data
+          fetchData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [taskId, fetchData])
+
   // Add comment
   const addComment = async (body) => {
     if (!taskId || !profile?.id || !body.trim()) return null
@@ -102,3 +128,4 @@ export function useCommentsAndLogs(taskId) {
     logActivity,
   }
 }
+

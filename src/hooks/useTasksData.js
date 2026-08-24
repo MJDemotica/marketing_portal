@@ -49,10 +49,7 @@ export function useTasksData() {
       // 2. Fetch tasks query
       let query = supabase.from('tasks').select('*').order('created_at', { ascending: false })
 
-      // Members see tasks assigned to them OR tasks they created; Supervisors see all department tasks
-      if (!isSupervisor && profile?.id) {
-        query = query.or(`assignee_id.eq.${profile.id},requestor_id.eq.${profile.id}`)
-      }
+      // All Marketing team members see all department tasks (RLS handles row-level access)
 
       const { data, error: taskErr } = await query
       if (taskErr) throw taskErr

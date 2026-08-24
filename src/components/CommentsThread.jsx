@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Send, MessageSquare, Loader2 } from 'lucide-react'
 import { formatTimeAgo } from '../hooks/useTasksData'
 
 export function CommentsThread({ comments, profilesMap, onAddComment }) {
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const commentsEndRef = useRef(null)
+
+  // Auto-scroll to bottom when new comments arrive
+  useEffect(() => {
+    if (commentsEndRef.current) {
+      commentsEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [comments.length])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -24,7 +32,7 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
   return (
     <div className="space-y-4">
       {/* Comments List */}
-      <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+      <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
         {comments.length > 0 ? (
           comments.map((comment) => {
             const author = profilesMap[comment.user_id]
@@ -71,6 +79,7 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
             No comments yet. Start the discussion below.
           </div>
         )}
+        <div ref={commentsEndRef} />
       </div>
 
       {/* Comment Form */}
@@ -94,3 +103,4 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
     </div>
   )
 }
+

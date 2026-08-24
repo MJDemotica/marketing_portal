@@ -26,7 +26,6 @@ export default function AdminCenter() {
     members,
     pendingMembers,
     activeMembers,
-    templates,
     departments,
     loading,
     error,
@@ -36,8 +35,6 @@ export default function AdminCenter() {
     deleteMember,
     approveMember,
     rejectMember,
-    createTemplate,
-    deleteTemplate,
     resetTaskData,
   } = useAdminData()
 
@@ -77,9 +74,6 @@ export default function AdminCenter() {
   const [editingMember, setEditingMember] = useState(null)
   const [deletingMemberId, setDeletingMemberId] = useState(null)
 
-  const [showAddTemplateModal, setShowAddTemplateModal] = useState(false)
-  const [deletingTemplateId, setDeletingTemplateId] = useState(null)
-
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false)
   const [resetConfirmInput, setResetConfirmInput] = useState('')
   const [resetSuccess, setResetSuccess] = useState(false)
@@ -93,11 +87,7 @@ export default function AdminCenter() {
     department: 'Marketing',
   })
 
-  // Template form state
-  const [templateForm, setTemplateForm] = useState({
-    name: '',
-    fieldsText: 'Target Audience: All Clients\nDeliverables: Graphic, Copy\nDeadline: 3 days',
-  })
+
 
   // Submit Add / Edit Member
   async function handleMemberSubmit(e) {
@@ -137,48 +127,7 @@ export default function AdminCenter() {
     }
   }
 
-  // Submit Create Template
-  async function handleTemplateSubmit(e) {
-    e.preventDefault()
-    if (!templateForm.name.trim()) return
 
-    setSubmitting(true)
-    try {
-      const fieldsObj = {}
-      templateForm.fieldsText.split('\n').forEach((line) => {
-        const parts = line.split(':')
-        if (parts.length >= 2) {
-          const key = parts[0].trim()
-          const val = parts.slice(1).join(':').trim()
-          fieldsObj[key] = val
-        }
-      })
-
-      await createTemplate({
-        name: templateForm.name,
-        fields: fieldsObj,
-      })
-      setShowAddTemplateModal(false)
-      setTemplateForm({ name: '', fieldsText: '' })
-    } catch (err) {
-      alert(err.message || 'Failed to create template')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  // Delete Template Confirm
-  async function handleConfirmDeleteTemplate(id) {
-    setSubmitting(true)
-    try {
-      await deleteTemplate(id)
-      setDeletingTemplateId(null)
-    } catch (err) {
-      alert(err.message || 'Failed to delete template')
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   // Reset All Task Data
   async function handleResetTaskData(e) {
@@ -226,7 +175,7 @@ export default function AdminCenter() {
             </span>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            System administration, team member CRUD, request templates, and data maintenance.
+            System administration, team member management, and data maintenance.
           </p>
         </div>
 
@@ -244,7 +193,6 @@ export default function AdminCenter() {
         {[
           { id: 'pending', label: `Pending Approvals (${pendingMembers.length})`, icon: Clock, badge: pendingMembers.length > 0 },
           { id: 'members', label: `Active Roster (${activeMembers.length})`, icon: Users },
-          { id: 'templates', label: `Templates (${templates.length})`, icon: FileCode2 },
           { id: 'system', label: 'System & Danger Zone', icon: ShieldAlert },
         ].map((tab) => {
           const Icon = tab.icon
@@ -483,75 +431,7 @@ export default function AdminCenter() {
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 2: TEMPLATES MANAGEMENT (CRUD) */}
-      {/* ============================================================ */}
-      {activeTab === 'templates' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Structured Request Templates
-            </p>
-            <button
-              onClick={() => {
-                setTemplateForm({
-                  name: '',
-                  fieldsText: 'Target Audience: All Clients\nDeliverables: Banner, Copy\nDeadline: 3 days',
-                })
-                setShowAddTemplateModal(true)
-              }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition-colors shadow-sm"
-            >
-              <Plus size={15} />
-              Create Template
-            </button>
-          </div>
 
-          {/* Templates Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates.map((tmpl) => (
-              <div key={tmpl.id} className="card p-5 space-y-3 relative group">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-lg bg-brand-500/10 text-brand-500">
-                      <FileCode2 size={18} />
-                    </div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-base">
-                      {tmpl.name}
-                    </h4>
-                  </div>
-
-                  <button
-                    onClick={() => setDeletingTemplateId(tmpl.id)}
-                    className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                    title="Delete Template"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-
-                {/* Fields list */}
-                <div className="bg-surface-50 dark:bg-navy-800/60 rounded-lg p-3 space-y-1.5 text-xs">
-                  {tmpl.fields && Object.keys(tmpl.fields).length > 0 ? (
-                    Object.entries(tmpl.fields).map(([k, v]) => (
-                      <div key={k} className="flex justify-between">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium capitalize">
-                          {k.replace(/_/g, ' ')}:
-                        </span>
-                        <span className="text-slate-700 dark:text-slate-200 font-mono">
-                          {String(v)}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-slate-400 italic">No structured fields defined</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ============================================================ */}
       {/* TAB 3: SYSTEM & DANGER ZONE */}
@@ -726,80 +606,7 @@ export default function AdminCenter() {
         </div>
       )}
 
-      {/* Create Template Modal */}
-      {showAddTemplateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAddTemplateModal(false)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Create Request Template</h3>
-              <button onClick={() => setShowAddTemplateModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X size={18} />
-              </button>
-            </div>
 
-            <form onSubmit={handleTemplateSubmit} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-semibold mb-1">Template Name</label>
-                <input
-                  type="text"
-                  required
-                  value={templateForm.name}
-                  onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                  placeholder="e.g. Brand Design Request"
-                  className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-600 dark:text-slate-300 font-semibold mb-1">
-                  Default Field Descriptions (One key: value per line)
-                </label>
-                <textarea
-                  rows={4}
-                  value={templateForm.fieldsText}
-                  onChange={(e) => setTemplateForm({ ...templateForm, fieldsText: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 font-mono"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddTemplateModal(false)}
-                  className="px-4 py-2 rounded-lg border border-surface-300 text-slate-600 dark:text-slate-300"
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 rounded-lg bg-brand-500 text-white font-bold">
-                  Create Template
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Template Modal */}
-      {deletingTemplateId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeletingTemplateId(null)} />
-          <div className="relative w-full max-w-sm bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
-            <h3 className="text-base font-bold text-red-600 dark:text-red-400">Delete Template?</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Are you sure you want to delete this template?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setDeletingTemplateId(null)} className="px-3 py-1.5 rounded border border-surface-300 text-xs font-semibold">
-                Cancel
-              </button>
-              <button onClick={() => handleConfirmDeleteTemplate(deletingTemplateId)} className="px-3 py-1.5 rounded bg-red-600 text-white text-xs font-bold">
-                Confirm Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (
