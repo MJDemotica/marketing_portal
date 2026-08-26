@@ -142,15 +142,13 @@ export default function Home() {
             <FileDown size={16} />
             Export CSV
           </button>
-          {isSupervisor && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
-            >
-              <Plus size={16} />
-              Create New Task
-            </button>
-          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
+          >
+            <Plus size={16} />
+            Create New Task
+          </button>
         </div>
       </div>
 
@@ -234,11 +232,13 @@ export default function Home() {
 
                   {/* Status pills */}
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {Object.entries(member.statuses).map(([key, val]) => (
-                      <span key={key} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${statusColors[key]}`}>
-                        {statusLabels[key]} {val}
-                      </span>
-                    ))}
+                    {Object.entries(member.statuses)
+                      .filter(([key, val]) => isSupervisor || key !== 'review' || val > 0)
+                      .map(([key, val]) => (
+                        <span key={key} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${statusColors[key]}`}>
+                          {statusLabels[key]} {val}
+                        </span>
+                      ))}
                   </div>
 
                   {/* Next due task */}

@@ -304,8 +304,8 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                     </button>
                   )}
 
-                  {/* Member Quick Action: Mark Completed */}
-                  {!isSupervisor && ['assigned', 'in_progress', 'revision'].includes(form.status) && (
+                  {/* Quick Action: Mark Completed (Direct completion without supervisor approval gate) */}
+                  {['assigned', 'in_progress', 'revision'].includes(form.status) && (
                     <button
                       type="button"
                       disabled={loading}
