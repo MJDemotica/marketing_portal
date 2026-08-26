@@ -3,7 +3,6 @@ import TaskCard from './TaskCard'
 import { Plus } from 'lucide-react'
 
 const allColumns = [
-  { key: 'pending', label: 'Pending Requests', color: 'bg-slate-400' },
   { key: 'assigned', label: 'Assigned Tasks', color: 'bg-blue-500' },
   { key: 'in_progress', label: 'In Progress', color: 'bg-amber-500' },
   { key: 'for_review', label: 'For Review', color: 'bg-purple-500', supervisorOnly: true },

@@ -7,7 +7,6 @@ import { CommentsThread } from './CommentsThread'
 import { ActivityLogList } from './ActivityLogList'
 
 const allStatusOptions = [
-  { value: 'pending', label: 'Pending Requests' },
   { value: 'assigned', label: 'Assigned Tasks' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'for_review', label: 'For Review (Pending Approval)', supervisorOnly: true },

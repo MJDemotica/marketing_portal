@@ -16,7 +16,6 @@ const views = [
 
 const allStatusFilters = [
   { key: 'all', label: 'All' },
-  { key: 'pending', label: 'Pending' },
   { key: 'assigned', label: 'Assigned' },
   { key: 'in_progress', label: 'In Progress' },
   { key: 'for_review', label: 'For Review', supervisorOnly: true },
@@ -26,7 +25,6 @@ const allStatusFilters = [
 ]
 
 const allStageSections = [
-  { key: 'pending', label: 'Pending Requests', color: 'bg-slate-400' },
   { key: 'assigned', label: 'Assigned Tasks', color: 'bg-blue-500' },
   { key: 'in_progress', label: 'In Progress', color: 'bg-amber-500' },
   { key: 'for_review', label: 'For Review', color: 'bg-purple-500', supervisorOnly: true },

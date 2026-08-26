@@ -68,7 +68,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreated }) {
           title: form.title.trim(),
           description: form.description.trim() || null,
           priority: form.priority,
-          status: form.assignee_id ? 'assigned' : 'pending',
+          status: 'assigned',
           requestor_id: profile?.id,
           department: form.department,
           assignee_id: form.assignee_id || null,

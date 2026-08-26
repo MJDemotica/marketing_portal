@@ -18,10 +18,10 @@ import stlafLogo from '../../STLAF_LOGO.png'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
-  { to: '/tasks', icon: ClipboardCheck, label: 'Task Management' },
+  { to: '/tasks', icon: ClipboardCheck, label: 'Task Management', marketingOnly: true },
   { to: '/templates', icon: FileCode2, label: 'Templates' },
-  { to: '/review', icon: ClipboardCheck, label: 'Review Panel' },
-  { to: '/stats', icon: BarChart3, label: 'Team Stats' },
+  { to: '/review', icon: ClipboardCheck, label: 'Review Panel', marketingOnly: true },
+  { to: '/stats', icon: BarChart3, label: 'Team Stats', marketingOnly: true },
   { to: '/admin', icon: Settings, label: 'Admin Center', supervisorOnly: true },
   { to: '/account', icon: User, label: 'My Account' },
 ]
@@ -31,6 +31,8 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
   const { profile, isSupervisor, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+
+  const isDepartmentAccount = profile?.department && profile?.department !== 'Marketing'
 
   // Generate avatar initials from display name
   const initials = profile?.display_name
@@ -46,10 +48,12 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
     }
   }
 
-  // Filter nav items by role
-  const visibleNavItems = navItems.filter(
-    item => !item.supervisorOnly || isSupervisor
-  )
+  // Filter nav items by role and department
+  const visibleNavItems = navItems.filter(item => {
+    if (item.supervisorOnly && !isSupervisor) return false
+    if (item.marketingOnly && isDepartmentAccount) return false
+    return true
+  })
 
   return (
     <aside
@@ -72,7 +76,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
               Marketing Portal
             </h1>
             <p className="text-slate-400 text-[11px] font-medium tracking-[0.15em] uppercase mt-0.5">
-              Marketing
+              {profile?.department || 'Marketing'}
             </p>
           </div>
         </div>

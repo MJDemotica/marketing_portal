@@ -24,6 +24,8 @@ export default function ReviewPanel() {
   const { profile, isSupervisor } = useAuth()
   const { sendNotification } = useNotifications()
 
+  const [activeTab, setActiveTab] = useState('intake')
+  const [intakeTasks, setIntakeTasks] = useState([])
   const [reviewTasks, setReviewTasks] = useState([])
   const [profilesMap, setProfilesMap] = useState({})
   const [loading, setLoading] = useState(true)
@@ -32,9 +34,11 @@ export default function ReviewPanel() {
   // Revision notes modal state
   const [revisionModalTask, setRevisionModalTask] = useState(null)
   const [revisionNotes, setRevisionNotes] = useState('')
+  const [disapproveModalTask, setDisapproveModalTask] = useState(null)
+  const [disapproveReason, setDisapproveReason] = useState('')
   const [submittingAction, setSubmittingAction] = useState(false)
 
-  // Fetch tasks in "for_review" status
+  // Fetch tasks in "pending" (intake) and "for_review" (deliverables)
   const fetchReviewTasks = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -46,7 +50,19 @@ export default function ReviewPanel() {
       if (profs) profs.forEach((p) => (pMap[p.id] = p))
       setProfilesMap(pMap)
 
-      // 2. Load tasks in for_review
+      // 2. Load Department Intake Queue (for Supervisors)
+      if (isSupervisor) {
+        const { data: intakeData, error: iErr } = await supabase
+          .from('tasks')
+          .select('*')
+          .in('status', ['pending', 'pending_supervisor_review', 'submitted_by_department'])
+          .order('created_at', { ascending: false })
+
+        if (iErr) throw iErr
+        setIntakeTasks(intakeData || [])
+      }
+
+      // 3. Load tasks in for_review
       let query = supabase.from('tasks').select('*').eq('status', 'for_review').order('updated_at', { ascending: false })
       if (!isSupervisor && profile?.id) {
         query = query.eq('assignee_id', profile.id)
@@ -62,7 +78,7 @@ export default function ReviewPanel() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isSupervisor, profile?.id])
 
   useEffect(() => {
     fetchReviewTasks()
@@ -169,9 +185,6 @@ export default function ReviewPanel() {
   }
 
   // Disapprove Task
-  const [disapproveModalTask, setDisapproveModalTask] = useState(null)
-  const [disapproveReason, setDisapproveReason] = useState('')
-
   async function handleDisapproveSubmit(e) {
     e.preventDefault()
     if (!disapproveModalTask || !disapproveReason.trim()) return
@@ -260,20 +273,196 @@ export default function ReviewPanel() {
         </button>
       </div>
 
-      {/* Empty State */}
-      {reviewTasks.length === 0 ? (
-        <div className="card p-16 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 dark:bg-green-500/10 mb-4">
-            <CircleCheck size={36} className="text-green-500" />
-          </div>
-          <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200">
-            No Tasks for Review
-          </h3>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-2 max-w-xs mx-auto">
-            Everything is up to date. Tasks submitted for review will appear here.
-          </p>
+      {/* Supervisor Tab Switcher */}
+      {isSupervisor && (
+        <div className="flex items-center gap-2 border-b border-surface-200 dark:border-navy-600 pb-3">
+          <button
+            onClick={() => setActiveTab('intake')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'intake'
+                ? 'bg-brand-500 text-white shadow-sm'
+                : 'bg-surface-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 hover:bg-surface-200 dark:hover:bg-navy-700'
+            }`}
+          >
+            <Clock size={14} />
+            Department Request Intake
+            <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+              activeTab === 'intake' ? 'bg-white/20 text-white' : 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
+            }`}>
+              {intakeTasks.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('review')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'review'
+                ? 'bg-brand-500 text-white shadow-sm'
+                : 'bg-surface-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 hover:bg-surface-200 dark:hover:bg-navy-700'
+            }`}
+          >
+            <CheckCircle2 size={14} />
+            Marketing Deliverables Review
+            <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+              activeTab === 'review' ? 'bg-white/20 text-white' : 'bg-surface-300 dark:bg-navy-600 text-slate-700 dark:text-slate-200'
+            }`}>
+              {reviewTasks.length}
+            </span>
+          </button>
         </div>
-      ) : (
+      )}
+
+      {/* ============================================================ */}
+      {/* 1. DEPARTMENT INTAKE QUEUE (SUPERVISOR ONLY) */}
+      {/* ============================================================ */}
+      {isSupervisor && activeTab === 'intake' && (
+        <div>
+          {intakeTasks.length === 0 ? (
+            <div className="card p-16 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 mb-4">
+                <CircleCheck size={36} className="text-brand-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200">
+                Intake Queue is Empty
+              </h3>
+              <p className="text-sm text-slate-400 dark:text-slate-500 mt-2 max-w-sm mx-auto">
+                No pending requests from department accounts. New requests submitted by Accounting, Corporate, HR, Litigation, or Operations will appear here for feasibility review.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-brand-600 dark:text-brand-400">
+                  Incoming Department Requests ({intakeTasks.length})
+                </p>
+                <span className="text-xs text-slate-400">
+                  Visible exclusively to Marketing Supervisors
+                </span>
+              </div>
+
+              {intakeTasks.map((task) => {
+                const requestor = profilesMap[task.requestor_id]
+                const requestorName = requestor ? requestor.display_name : 'Department Requester'
+
+                return (
+                  <div
+                    key={task.id}
+                    className="card p-6 border-l-4 border-l-brand-500 space-y-4"
+                  >
+                    {/* Header Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="font-mono text-xs font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-500/10 px-2.5 py-1 rounded-md border border-brand-200 dark:border-brand-500/30">
+                          {task.task_code}
+                        </span>
+
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30">
+                          {task.department || 'Department'}
+                        </span>
+
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                          {task.priority || 'NORMAL'}
+                        </span>
+
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                          {task.title}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                        <Clock size={13} />
+                        <span>Submitted {formatTimeAgo(task.created_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Metadata Box */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-surface-50 dark:bg-navy-800/60 p-3 rounded-lg border border-surface-100 dark:border-navy-700">
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500">Requesting Dept: </span>
+                        <strong className="text-slate-700 dark:text-slate-200">{task.department || 'Department'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500">Submitted by: </span>
+                        <strong className="text-slate-700 dark:text-slate-200">{requestorName}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 dark:text-slate-500">Requested Due Date: </span>
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'None requested'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {task.description && (
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-navy-800 p-3.5 rounded-lg border border-surface-200 dark:border-navy-700 whitespace-pre-wrap">
+                        {task.description}
+                      </p>
+                    )}
+
+                    {/* Attachment Link */}
+                    {task.attachment_url && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-slate-400">Reference / Attachment:</span>
+                        <a
+                          href={task.attachment_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-brand-500 hover:text-brand-600 font-semibold underline"
+                        >
+                          <ExternalLink size={13} />
+                          {task.attachment_url}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Collapsible Comments Thread */}
+                    <ReviewTaskComments
+                      task={task}
+                      profilesMap={profilesMap}
+                      sendNotification={sendNotification}
+                      currentUserId={profile?.id}
+                      currentUserName={profile?.display_name}
+                    />
+
+                    {/* Queue Status Notice */}
+                    <div className="flex items-center justify-between pt-2 border-t border-surface-200 dark:border-navy-700">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-500/30">
+                        <Clock size={13} />
+                        Pending Feasibility Review
+                      </span>
+
+                      <span className="text-[11px] text-slate-400 italic">
+                        Phase 5 will enable one-click Approve & Assign / Decline actions
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 2. MARKETING DELIVERABLES REVIEW */}
+      {/* ============================================================ */}
+      {(!isSupervisor || activeTab === 'review') && (
+        <div>
+          {/* Empty State */}
+          {reviewTasks.length === 0 ? (
+            <div className="card p-16 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 dark:bg-green-500/10 mb-4">
+                <CircleCheck size={36} className="text-green-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200">
+                No Tasks for Review
+              </h3>
+              <p className="text-sm text-slate-400 dark:text-slate-500 mt-2 max-w-xs mx-auto">
+                Everything is up to date. Marketing deliverables submitted for review will appear here.
+              </p>
+            </div>
+          ) : (
         /* Tasks Pending Review List */
         <div className="space-y-6">
           <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-purple-600 dark:text-purple-400">
@@ -393,6 +582,8 @@ export default function ReviewPanel() {
           })}
         </div>
       )}
+    </div>
+  )}
 
       {/* Request Revision Modal */}
       {revisionModalTask && (
