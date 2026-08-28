@@ -169,7 +169,7 @@ export default function DepartmentRequestModal({ isOpen, onClose, onCreated }) {
             </label>
             <select
               value={selectedTemplateId}
-              onChange={handleTemplateSelect}
+              onChange={handleSelectTemplate}
               className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             >
               <option value="">-- Select a structured template (or start blank) --</option>

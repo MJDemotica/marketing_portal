@@ -23,7 +23,7 @@ const priorityOptions = [
   { value: 'urgent', label: 'Urgent' },
 ]
 
-export default function TaskDetailModal({ task, isOpen, onClose, profilesList, profilesMap = {}, onUpdate, onDelete }) {
+export default function TaskDetailModal({ task, isOpen, onClose, profilesList = [], profilesMap = {}, onUpdate, onDelete }) {
   const { isSupervisor } = useAuth()
 
   // Members don't see 'for_review' in the status dropdown
@@ -177,7 +177,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
 
           {/* TAB 1: DETAILS */}
           {activeTab === 'details' && (
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                   Task Title
