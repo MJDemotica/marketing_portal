@@ -663,6 +663,3 @@ export default function AdminCenter() {
     </div>
   )
 }
-    </div>
-  )
-}
