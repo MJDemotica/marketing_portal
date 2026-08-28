@@ -289,9 +289,9 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-surface-200 dark:border-navy-600">
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  {/* Delete button (Supervisor only) */}
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-surface-200 dark:border-navy-600">
+                {/* Left: Destructive action */}
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {isSupervisor && !confirmDelete && (
                     <button
                       type="button"
@@ -299,11 +299,14 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs font-medium transition-colors"
                     >
                       <Trash2 size={15} />
-                      Delete Task
+                      Delete
                     </button>
                   )}
+                </div>
 
-                  {/* Quick Action: Mark Completed (Direct completion without supervisor approval gate) */}
+                {/* Right: Quick action + Form actions */}
+                <div className="flex items-center gap-2.5 flex-shrink-0">
+                  {/* Quick Action: Mark Completed */}
                   {['assigned', 'in_progress', 'revision'].includes(form.status) && (
                     <button
                       type="button"
@@ -326,23 +329,22 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
                       Mark Completed
                     </button>
                   )}
-                </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-lg border border-surface-300 dark:border-navy-600 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-surface-100 dark:hover:bg-navy-600 transition-colors"
+                    className="px-4 py-2 rounded-lg border border-surface-300 dark:border-navy-600 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-surface-100 dark:hover:bg-navy-600 transition-colors"
                   >
                     Cancel
                   </button>
+
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-medium transition-colors shadow-sm"
                   >
-                    {loading && <Loader2 size={16} className="animate-spin" />}
-                    <Save size={16} />
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                    <Save size={14} />
                     Save Changes
                   </button>
                 </div>
