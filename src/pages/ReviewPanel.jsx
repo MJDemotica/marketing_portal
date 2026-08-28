@@ -12,6 +12,8 @@ import {
   Sparkles,
   ChevronDown,
   ChevronRight,
+  UserCircle2,
+  XCircle,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -37,6 +39,15 @@ export default function ReviewPanel() {
   const [disapproveModalTask, setDisapproveModalTask] = useState(null)
   const [disapproveReason, setDisapproveReason] = useState('')
   const [submittingAction, setSubmittingAction] = useState(false)
+
+  // Intake Approve & Assign modal state
+  const [intakeApproveTask, setIntakeApproveTask] = useState(null)
+  const [intakeAssigneeId, setIntakeAssigneeId] = useState('')
+  // Intake Decline modal state
+  const [intakeDeclineTask, setIntakeDeclineTask] = useState(null)
+  const [intakeDeclineReason, setIntakeDeclineReason] = useState('')
+  // Marketing team members for assignment dropdown
+  const [marketingMembers, setMarketingMembers] = useState([])
 
   // Fetch tasks in "pending" (intake) and "for_review" (deliverables)
   const fetchReviewTasks = useCallback(async () => {
@@ -83,6 +94,143 @@ export default function ReviewPanel() {
   useEffect(() => {
     fetchReviewTasks()
   }, [fetchReviewTasks])
+
+  // Load marketing team members for the Approve & Assign dropdown
+  useEffect(() => {
+    async function loadMarketingMembers() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, display_name, email, role')
+        .eq('department', 'Marketing')
+        .order('display_name')
+      if (data) setMarketingMembers(data)
+    }
+    loadMarketingMembers()
+  }, [])
+
+  // Approve & Assign intake request → converts to active marketing task
+  async function handleIntakeApprove(e) {
+    e.preventDefault()
+    if (!intakeApproveTask || !intakeAssigneeId) return
+
+    setSubmittingAction(true)
+    try {
+      const task = intakeApproveTask
+
+      // 1. Update task: status → assigned, set assignee
+      const { error: uErr } = await supabase
+        .from('tasks')
+        .update({
+          status: 'assigned',
+          assignee_id: intakeAssigneeId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', task.id)
+
+      if (uErr) throw uErr
+
+      // 2. Post comment noting the approval
+      const assignee = marketingMembers.find(m => m.id === intakeAssigneeId)
+      const assigneeName = assignee ? assignee.display_name : 'a team member'
+      await supabase.from('comments').insert({
+        task_id: task.id,
+        user_id: profile?.id,
+        body: `[APPROVED & ASSIGNED]: Request approved and assigned to ${assigneeName}.`,
+      })
+
+      // 3. Log activity
+      await supabase.from('activity_logs').insert({
+        task_id: task.id,
+        user_id: profile?.id,
+        action: 'intake_approved',
+        details: { assignee_id: intakeAssigneeId, assignee_name: assigneeName },
+      })
+
+      // 4. Notify the department requestor
+      if (task.requestor_id && task.requestor_id !== profile?.id) {
+        await sendNotification({
+          userId: task.requestor_id,
+          type: 'task_approved',
+          message: `Your request "${task.title}" (${task.task_code}) has been approved and assigned to ${assigneeName}!`,
+          taskId: task.id,
+        })
+      }
+
+      // 5. Notify the assigned marketing member
+      if (intakeAssigneeId !== profile?.id) {
+        await sendNotification({
+          userId: intakeAssigneeId,
+          type: 'task_assigned',
+          message: `You've been assigned a new department request: "${task.title}" (${task.task_code})`,
+          taskId: task.id,
+        })
+      }
+
+      setIntakeApproveTask(null)
+      setIntakeAssigneeId('')
+      await fetchReviewTasks()
+    } catch (err) {
+      console.error('Error approving intake request:', err)
+    } finally {
+      setSubmittingAction(false)
+    }
+  }
+
+  // Decline intake request
+  async function handleIntakeDecline(e) {
+    e.preventDefault()
+    if (!intakeDeclineTask || !intakeDeclineReason.trim()) return
+
+    setSubmittingAction(true)
+    try {
+      const task = intakeDeclineTask
+
+      // 1. Update task: status → disapproved, store decline_reason
+      const { error: uErr } = await supabase
+        .from('tasks')
+        .update({
+          status: 'disapproved',
+          decline_reason: intakeDeclineReason.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', task.id)
+
+      if (uErr) throw uErr
+
+      // 2. Post comment with decline reason
+      await supabase.from('comments').insert({
+        task_id: task.id,
+        user_id: profile?.id,
+        body: `[REQUEST DECLINED]: ${intakeDeclineReason.trim()}`,
+      })
+
+      // 3. Log activity
+      await supabase.from('activity_logs').insert({
+        task_id: task.id,
+        user_id: profile?.id,
+        action: 'intake_declined',
+        details: { reason: intakeDeclineReason.trim() },
+      })
+
+      // 4. Notify department requestor
+      if (task.requestor_id && task.requestor_id !== profile?.id) {
+        await sendNotification({
+          userId: task.requestor_id,
+          type: 'task_disapproved',
+          message: `Your request "${task.title}" (${task.task_code}) was declined.`,
+          taskId: task.id,
+        })
+      }
+
+      setIntakeDeclineTask(null)
+      setIntakeDeclineReason('')
+      await fetchReviewTasks()
+    } catch (err) {
+      console.error('Error declining intake request:', err)
+    } finally {
+      setSubmittingAction(false)
+    }
+  }
 
   // Approve task (→ Completed)
   async function handleApprove(task) {
@@ -425,16 +573,33 @@ export default function ReviewPanel() {
                       currentUserName={profile?.display_name}
                     />
 
-                    {/* Queue Status Notice */}
-                    <div className="flex items-center justify-between pt-2 border-t border-surface-200 dark:border-navy-700">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-500/30">
-                        <Clock size={13} />
-                        Pending Feasibility Review
-                      </span>
+                    {/* Supervisor Feasibility Review Actions */}
+                    <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-surface-200 dark:border-navy-700">
+                      {/* Decline */}
+                      <button
+                        onClick={() => {
+                          setIntakeDeclineTask(task)
+                          setIntakeDeclineReason('')
+                        }}
+                        disabled={submittingAction}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-300 dark:border-red-500/40 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 text-xs font-bold transition-colors"
+                      >
+                        <XCircle size={15} />
+                        Decline Request
+                      </button>
 
-                      <span className="text-[11px] text-slate-400 italic">
-                        Phase 5 will enable one-click Approve & Assign / Decline actions
-                      </span>
+                      {/* Approve & Assign */}
+                      <button
+                        onClick={() => {
+                          setIntakeApproveTask(task)
+                          setIntakeAssigneeId('')
+                        }}
+                        disabled={submittingAction}
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors shadow-sm"
+                      >
+                        <CheckCircle2 size={15} />
+                        Approve & Assign
+                      </button>
                     </div>
                   </div>
                 )
@@ -668,6 +833,136 @@ export default function ReviewPanel() {
                 >
                   {submittingAction && <Loader2 size={14} className="animate-spin" />}
                   Confirm Disapprove
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* Intake: Approve & Assign Modal */}
+      {/* ============================================================ */}
+      {intakeApproveTask && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIntakeApproveTask(null)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-5">
+            <div>
+              <h3 className="text-lg font-bold text-green-700 dark:text-green-400">
+                Approve & Assign
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Approve <strong>{intakeApproveTask.task_code}</strong> — <em>"{intakeApproveTask.title}"</em> — and assign it to a Marketing team member.
+              </p>
+            </div>
+
+            {/* Request summary */}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-surface-50 dark:bg-navy-800/60 p-3 rounded-lg border border-surface-100 dark:border-navy-700">
+              <div>
+                <span className="text-slate-400">Department:</span>
+                <strong className="ml-1 text-slate-700 dark:text-slate-200">{intakeApproveTask.department}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400">Priority:</span>
+                <strong className="ml-1 text-slate-700 dark:text-slate-200 uppercase">{intakeApproveTask.priority || 'normal'}</strong>
+              </div>
+              <div className="col-span-2">
+                <span className="text-slate-400">Due Date:</span>
+                <strong className="ml-1 text-slate-700 dark:text-slate-200">
+                  {intakeApproveTask.due_date ? new Date(intakeApproveTask.due_date).toLocaleDateString() : 'None'}
+                </strong>
+              </div>
+            </div>
+
+            <form onSubmit={handleIntakeApprove} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  <UserCircle2 size={14} className="inline mr-1 -mt-0.5" />
+                  Assign to Marketing Member <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={intakeAssigneeId}
+                  onChange={(e) => setIntakeAssigneeId(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500/30"
+                >
+                  <option value="">Select a team member...</option>
+                  {marketingMembers.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.display_name} {m.role === 'supervisor' ? '(Supervisor)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIntakeApproveTask(null)}
+                  className="px-4 py-2 rounded-lg border border-surface-300 text-slate-600 dark:text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingAction || !intakeAssigneeId}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors"
+                >
+                  {submittingAction && <Loader2 size={14} className="animate-spin" />}
+                  Approve & Assign
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* Intake: Decline Request Modal */}
+      {/* ============================================================ */}
+      {intakeDeclineTask && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIntakeDeclineTask(null)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-5">
+            <div>
+              <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
+                Decline Request
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Decline <strong>{intakeDeclineTask.task_code}</strong> — <em>"{intakeDeclineTask.title}"</em> — and provide a reason to the requesting department.
+              </p>
+            </div>
+
+            <form onSubmit={handleIntakeDecline} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  Reason for Declining <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={intakeDeclineReason}
+                  onChange={(e) => setIntakeDeclineReason(e.target.value)}
+                  placeholder="E.g. Not feasible within the requested timeline, insufficient details, not within marketing scope..."
+                  rows={4}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIntakeDeclineTask(null)}
+                  className="px-4 py-2 rounded-lg border border-surface-300 text-slate-600 dark:text-slate-300 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingAction || !intakeDeclineReason.trim()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+                >
+                  {submittingAction && <Loader2 size={14} className="animate-spin" />}
+                  Confirm Decline
                 </button>
               </div>
             </form>

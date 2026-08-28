@@ -392,6 +392,7 @@ function DepartmentHomeDashboard({ tasks, profiles, loading, error, refetch, pro
   const pendingReview = deptTasks.filter(t => t.status === 'pending' || t.status === 'pending_supervisor_review' || t.status === 'submitted_by_department').length
   const inProgress = deptTasks.filter(t => ['assigned', 'in_progress', 'revision', 'for_review'].includes(t.status)).length
   const completed = deptTasks.filter(t => t.status === 'completed').length
+  const declined = deptTasks.filter(t => t.status === 'disapproved').length
 
   const filteredTasks = useMemo(() => {
     return deptTasks.filter(task => {
@@ -404,6 +405,8 @@ function DepartmentHomeDashboard({ tasks, profiles, loading, error, refetch, pro
         if (task.status !== 'revision') return false
       } else if (activeFilter === 'completed') {
         if (task.status !== 'completed') return false
+      } else if (activeFilter === 'declined') {
+        if (task.status !== 'disapproved') return false
       }
 
       // Search query
@@ -553,6 +556,7 @@ function DepartmentHomeDashboard({ tasks, profiles, loading, error, refetch, pro
               { id: 'in_progress', label: 'In Progress' },
               { id: 'revision', label: 'Revision Needed' },
               { id: 'completed', label: 'Completed' },
+              { id: 'declined', label: 'Declined' },
             ].map(f => (
               <button
                 key={f.id}
@@ -641,6 +645,17 @@ function DepartmentHomeDashboard({ tasks, profiles, loading, error, refetch, pro
                       <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 leading-relaxed">
                         {task.description}
                       </p>
+                    )}
+
+                    {/* Decline reason callout */}
+                    {task.status === 'disapproved' && task.decline_reason && (
+                      <div className="flex items-start gap-2 mt-1 p-2.5 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
+                        <AlertTriangle size={14} className="text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[11px] font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">Decline Reason</p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-0.5 leading-relaxed">{task.decline_reason}</p>
+                        </div>
+                      </div>
                     )}
                   </div>
 
