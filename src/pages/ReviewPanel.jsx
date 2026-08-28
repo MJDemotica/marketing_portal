@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   CircleCheck,
   CheckCircle2,
@@ -751,9 +752,9 @@ export default function ReviewPanel() {
   )}
 
       {/* Request Revision Modal */}
-      {revisionModalTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setRevisionModalTask(null)} />
+      {revisionModalTask && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setRevisionModalTask(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">
               Hold for Revision: {revisionModalTask.task_code}
@@ -792,13 +793,14 @@ export default function ReviewPanel() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Disapprove Modal */}
-      {disapproveModalTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDisapproveModalTask(null)} />
+      {disapproveModalTask && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setDisapproveModalTask(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
             <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
               Disapprove Task: {disapproveModalTask.task_code}
@@ -837,15 +839,16 @@ export default function ReviewPanel() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ============================================================ */}
       {/* Intake: Approve & Assign Modal */}
       {/* ============================================================ */}
-      {intakeApproveTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIntakeApproveTask(null)} />
+      {intakeApproveTask && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIntakeApproveTask(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-5">
             <div>
               <h3 className="text-lg font-bold text-green-700 dark:text-green-400">
@@ -914,15 +917,16 @@ export default function ReviewPanel() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ============================================================ */}
       {/* Intake: Decline Request Modal */}
       {/* ============================================================ */}
-      {intakeDeclineTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIntakeDeclineTask(null)} />
+      {intakeDeclineTask && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIntakeDeclineTask(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-5">
             <div>
               <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
@@ -967,7 +971,8 @@ export default function ReviewPanel() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

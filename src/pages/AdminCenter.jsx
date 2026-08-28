@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Users,
   FileCode2,
@@ -498,9 +499,9 @@ export default function AdminCenter() {
       {/* ============================================================ */}
 
       {/* Add / Edit Member Modal */}
-      {(showAddMemberModal || editingMember) && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setShowAddMemberModal(false); setEditingMember(null); }} />
+      {(showAddMemberModal || editingMember) && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => { setShowAddMemberModal(false); setEditingMember(null); }} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">
@@ -582,13 +583,14 @@ export default function AdminCenter() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Member Confirmation Modal */}
-      {deletingMemberId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeletingMemberId(null)} />
+      {deletingMemberId && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setDeletingMemberId(null)} />
           <div className="relative w-full max-w-sm bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
             <h3 className="text-base font-bold text-red-600 dark:text-red-400">Delete Member Profile?</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -603,15 +605,14 @@ export default function AdminCenter() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-
-
       {/* Reset Confirmation Modal */}
-      {showResetConfirmModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowResetConfirmModal(false)} />
+      {showResetConfirmModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowResetConfirmModal(false)} />
           <div className="relative w-full max-w-md bg-white dark:bg-navy-700 rounded-2xl shadow-2xl p-6 space-y-4">
             <div className="flex items-center gap-2 text-red-600 font-bold text-lg">
               <AlertTriangle size={22} />
@@ -656,8 +657,12 @@ export default function AdminCenter() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+    </div>
+  )
+}
     </div>
   )
 }

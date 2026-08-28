@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   FileCode2,
   Plus,
@@ -229,10 +230,10 @@ export default function Templates() {
       {/* ============================================================ */}
       {/* CREATE TEMPLATE MODAL */}
       {/* ============================================================ */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {showCreateModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => setShowCreateModal(false)}
           />
           <div className="relative w-full max-w-lg bg-white dark:bg-navy-700 rounded-2xl shadow-2xl overflow-hidden">
@@ -253,8 +254,8 @@ export default function Templates() {
             {createSuccess && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 dark:bg-navy-700/90">
                 <div className="text-center">
-                  <CheckCircle2 size={48} className="text-green-500 mx-auto mb-3" />
-                  <p className="text-lg font-semibold text-slate-800 dark:text-white">
+                  <CheckCircle2 size={48} className="text-green-500 mx-auto mb-2" />
+                  <p className="font-semibold text-slate-800 dark:text-white text-lg">
                     Template Created!
                   </p>
                 </div>
@@ -264,7 +265,7 @@ export default function Templates() {
             {/* Form */}
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               {createError && (
-                <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm">
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs">
                   {createError}
                 </div>
               )}
@@ -320,7 +321,8 @@ export default function Templates() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

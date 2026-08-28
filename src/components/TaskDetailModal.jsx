@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Loader2, Trash2, Save, AlertTriangle, MessageSquare, Activity, FileText, Send, CheckCircle2, XCircle } from 'lucide-react'
 import { formatTimeAgo } from '../hooks/useTasksData'
 import { useCommentsAndLogs } from '../hooks/useCommentsAndLogs'
@@ -66,24 +67,30 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  async function handleSave(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const statusChanged = form.status !== task.status
-      await onUpdate(task.id, {
+      const updates = {
         title: form.title.trim(),
         description: form.description.trim() || null,
         priority: form.priority,
         status: form.status,
         assignee_id: form.assignee_id || null,
         due_date: form.due_date || null,
-      })
+        updated_at: new Date().toISOString(),
+      }
 
-      if (statusChanged) {
-        await logActivity('status_change', { status: form.status })
+      await onUpdate(task.id, updates)
+
+      // Log status change if status modified
+      if (form.status !== task.status) {
+        await logActivity('status_change', {
+          old_status: task.status,
+          new_status: form.status,
+        })
       }
 
       onClose()
@@ -96,6 +103,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
 
   async function handleDeleteConfirm() {
     setLoading(true)
+    setError('')
     try {
       await onDelete(task.id)
       onClose()
@@ -106,10 +114,10 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop covering entire screen */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
 
       {/* Modal Card */}
       <div className="relative w-full max-w-xl bg-white dark:bg-navy-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -370,6 +378,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList, p
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

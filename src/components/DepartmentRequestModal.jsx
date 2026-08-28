@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Loader2, CheckCircle2, FileCode2, Send, Link as LinkIcon, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -28,87 +29,69 @@ export default function DepartmentRequestModal({ isOpen, onClose, onCreated }) {
     attachment_url: '',
   })
 
-  // Load available templates for quick-fill
+  // Load request templates
   useEffect(() => {
     if (!isOpen) return
     async function loadTemplates() {
-      try {
-        const { data, error: tErr } = await supabase
-          .from('templates')
-          .select('*')
-          .order('name')
-        if (!tErr && data) {
-          setTemplates(data)
-        }
-      } catch (err) {
-        console.error('Error fetching templates:', err)
-      }
+      const { data } = await supabase
+        .from('templates')
+        .select('*')
+        .order('name')
+      if (data) setTemplates(data)
     }
     loadTemplates()
   }, [isOpen])
+
+  // If user selects a template, auto-fill title/description/priority defaults
+  function handleSelectTemplate(e) {
+    const tId = e.target.value
+    setSelectedTemplateId(tId)
+    if (!tId) return
+
+    const t = templates.find(item => item.id === tId)
+    if (t) {
+      setForm(prev => ({
+        ...prev,
+        title: prev.title || t.name || '',
+        description: prev.description || t.description || '',
+        priority: t.default_priority || prev.priority || 'normal',
+      }))
+    }
+  }
 
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  function handleTemplateSelect(e) {
-    const tmplId = e.target.value
-    setSelectedTemplateId(tmplId)
-
-    if (!tmplId) return
-
-    const selected = templates.find(t => t.id === tmplId)
-    if (selected && selected.fields) {
-      let formattedFields = ''
-      if (typeof selected.fields === 'object') {
-        formattedFields = Object.entries(selected.fields)
-          .map(([k, v]) => `• ${k.replace(/_/g, ' ')}: ${v || ''}`)
-          .join('\n')
-      }
-
-      setForm(prev => ({
-        ...prev,
-        title: prev.title || `${selected.name} - ${userDept}`,
-        description: prev.description
-          ? `${prev.description}\n\n[Template: ${selected.name}]\n${formattedFields}`
-          : `[Template: ${selected.name}]\n${formattedFields}`,
-      }))
-    }
-  }
-
-  function generateRequestCode() {
+  // Generate request task code
+  function generateTaskCode() {
     const num = Math.floor(1000 + Math.random() * 9000)
     return `REQ-${num}`
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.title.trim()) {
-      setError('Please provide a request title')
-      return
-    }
+    if (!form.title.trim()) return
 
     setLoading(true)
     setError('')
 
     try {
-      const requestCode = generateRequestCode()
-
+      const taskCode = generateTaskCode()
       const { error: insertErr } = await supabase
         .from('tasks')
         .insert({
-          task_code: requestCode,
+          task_code: taskCode,
           title: form.title.trim(),
           description: form.description.trim() || null,
           priority: form.priority,
-          status: 'pending', // Pending supervisor feasibility review
-          requestor_id: profile?.id,
+          status: 'pending',
           department: userDept,
-          assignee_id: null,
+          requestor_id: profile?.id,
           due_date: form.due_date || null,
-          template_id: selectedTemplateId || null,
           attachment_url: form.attachment_url.trim() || null,
+          template_id: selectedTemplateId || null,
           revision_count: 0,
         })
 
@@ -138,10 +121,10 @@ export default function DepartmentRequestModal({ isOpen, onClose, onCreated }) {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
 
       {/* Modal Card */}
       <div className="relative w-full max-w-lg bg-white dark:bg-navy-700 rounded-2xl shadow-2xl overflow-hidden border border-surface-200 dark:border-navy-600">
@@ -309,6 +292,7 @@ export default function DepartmentRequestModal({ isOpen, onClose, onCreated }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
