@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Loader2, Trash2, Save, AlertTriangle, MessageSquare, Activity, FileText, Send, CheckCircle2, XCircle } from 'lucide-react'
 import { formatTimeAgo } from '../hooks/useTasksData'
@@ -6,6 +6,7 @@ import { useCommentsAndLogs } from '../hooks/useCommentsAndLogs'
 import { useAuth } from '../contexts/AuthContext'
 import { CommentsThread } from './CommentsThread'
 import { ActivityLogList } from './ActivityLogList'
+import { extractMentionedUserIds } from '../utils/mentionUtils'
 
 const allStatusOptions = [
   { value: 'assigned', label: 'Assigned Tasks' },
@@ -365,7 +366,11 @@ export default function TaskDetailModal({ task, isOpen, onClose, profilesList = 
             <CommentsThread
               comments={comments}
               profilesMap={profilesMap}
-              onAddComment={addComment}
+              profilesList={profilesList}
+              onAddComment={(body) => {
+                const mentionedIds = extractMentionedUserIds(body, profilesList)
+                return addComment(body, mentionedIds)
+              }}
             />
           )}
 

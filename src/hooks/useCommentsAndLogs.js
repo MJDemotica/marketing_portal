@@ -70,8 +70,8 @@ export function useCommentsAndLogs(taskId) {
     }
   }, [taskId, fetchData])
 
-  // Add comment
-  const addComment = async (body) => {
+  // Add comment (with optional mention notifications)
+  const addComment = async (body, mentionedUserIds = []) => {
     if (!taskId || !profile?.id || !body.trim()) return null
 
     try {
@@ -95,6 +95,21 @@ export function useCommentsAndLogs(taskId) {
         details: { body: body.trim().slice(0, 50) },
       })
 
+      // Send mention notifications (skip self-mentions)
+      if (mentionedUserIds.length > 0) {
+        const uniqueIds = mentionedUserIds.filter((id) => id !== profile.id)
+        if (uniqueIds.length > 0) {
+          const mentionNotifs = uniqueIds.map((uid) => ({
+            user_id: uid,
+            type: 'mention',
+            message: `${profile.display_name} mentioned you in a comment: "${body.trim().slice(0, 60)}${body.trim().length > 60 ? '…' : ''}"`,
+            task_id: taskId,
+            read: false,
+          }))
+          await supabase.from('notifications').insert(mentionNotifs)
+        }
+      }
+
       await fetchData()
       return newComment
     } catch (err) {
@@ -102,6 +117,7 @@ export function useCommentsAndLogs(taskId) {
       throw err
     }
   }
+
 
   // Log activity helper
   const logActivity = async (action, details = {}) => {

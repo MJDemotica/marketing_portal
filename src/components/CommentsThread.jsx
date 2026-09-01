@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, MessageSquare, Loader2 } from 'lucide-react'
 import { formatTimeAgo } from '../hooks/useTasksData'
+import { MentionInput } from './MentionInput'
+import { parseMentions } from '../utils/mentionUtils'
 
-export function CommentsThread({ comments, profilesMap, onAddComment }) {
+export function CommentsThread({ comments, profilesMap, profilesList = [], onAddComment }) {
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const commentsEndRef = useRef(null)
@@ -14,8 +15,7 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
     }
   }, [comments.length])
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit() {
     if (!newComment.trim() || submitting) return
 
     setSubmitting(true)
@@ -68,7 +68,7 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
                     </span>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                    {comment.body}
+                    {parseMentions(comment.body, profilesMap)}
                   </p>
                 </div>
               </div>
@@ -82,24 +82,16 @@ export function CommentsThread({ comments, profilesMap, onAddComment }) {
         <div ref={commentsEndRef} />
       </div>
 
-      {/* Comment Form */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment or feedback..."
-          className="flex-1 px-3.5 py-2 rounded-lg border border-surface-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-        />
-        <button
-          type="submit"
-          disabled={submitting || !newComment.trim()}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
-        >
-          {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-          Post
-        </button>
-      </form>
+      {/* Comment Form — with @mention support */}
+      <MentionInput
+        value={newComment}
+        onChange={setNewComment}
+        onSubmit={handleSubmit}
+        profilesList={profilesList}
+        placeholder="Add a comment... Type @ to mention"
+        disabled={submitting}
+        submitting={submitting}
+      />
     </div>
   )
 }

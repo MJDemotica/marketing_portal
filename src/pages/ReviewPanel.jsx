@@ -22,6 +22,7 @@ import { useNotifications } from '../hooks/useNotifications'
 import { useCommentsAndLogs } from '../hooks/useCommentsAndLogs'
 import { formatTimeAgo } from '../hooks/useTasksData'
 import { CommentsThread } from '../components/CommentsThread'
+import { extractMentionedUserIds } from '../utils/mentionUtils'
 
 export default function ReviewPanel() {
   const { profile, isSupervisor } = useAuth()
@@ -986,8 +987,13 @@ function ReviewTaskComments({ task, profilesMap, sendNotification, currentUserId
   const [expanded, setExpanded] = useState(false)
   const { comments, addComment } = useCommentsAndLogs(task.id)
 
+  // Derive profilesList from profilesMap for the mention dropdown
+  const profilesList = Object.values(profilesMap)
+
   async function handleAddComment(body) {
-    await addComment(body)
+    // Extract mentioned user IDs from the comment body
+    const mentionedIds = extractMentionedUserIds(body, profilesList)
+    await addComment(body, mentionedIds)
 
     // Send notification to assignee (if not the commenter)
     if (task.assignee_id && task.assignee_id !== currentUserId) {
@@ -1038,6 +1044,7 @@ function ReviewTaskComments({ task, profilesMap, sendNotification, currentUserId
           <CommentsThread
             comments={comments}
             profilesMap={profilesMap}
+            profilesList={profilesList}
             onAddComment={handleAddComment}
           />
         </div>

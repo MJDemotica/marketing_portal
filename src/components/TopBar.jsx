@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Menu, PanelLeftOpen, CheckCheck, FileText, AlertCircle, MessageSquare, CheckCircle2 } from 'lucide-react'
+import { Bell, Menu, PanelLeftOpen, CheckCheck, FileText, AlertCircle, MessageSquare, CheckCircle2, AtSign } from 'lucide-react'
 import { useNotifications } from '../hooks/useNotifications'
 import { formatTimeAgo } from '../hooks/useTasksData'
 
@@ -110,8 +110,12 @@ export default function TopBar({ onMenuClick, sidebarCollapsed, onToggleSidebar 
                         : 'bg-brand-50/40 dark:bg-brand-500/10 text-slate-800 dark:text-white font-medium'
                     }`}
                   >
-                    <div className="p-2 rounded-full bg-brand-500/10 text-brand-500 flex-shrink-0 mt-0.5">
-                      <FileText size={15} />
+                    <div className={`p-2 rounded-full flex-shrink-0 mt-0.5 ${
+                      n.type === 'mention'
+                        ? 'bg-purple-500/10 text-purple-500'
+                        : 'bg-brand-500/10 text-brand-500'
+                    }`}>
+                      {n.type === 'mention' ? <AtSign size={15} /> : <FileText size={15} />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs leading-snug">{n.message}</p>
