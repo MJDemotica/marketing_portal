@@ -403,17 +403,8 @@ export default function ReviewPanel() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-            Review Panel
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Review submitted marketing tasks, approve deliverables, hold for revisions, or disapprove requests.
-          </p>
-        </div>
-
+      {/* Action bar */}
+      <div className="flex items-center justify-end">
         <button
           onClick={fetchReviewTasks}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-300 dark:border-navy-600 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-surface-100 dark:hover:bg-navy-700 transition-colors"

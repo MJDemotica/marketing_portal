@@ -179,15 +179,8 @@ export default function MyAccount() {
 
   return (
     <div className="space-y-6 max-w-7xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-          My Account
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-          Manage your profile settings, security credentials, and view team roster.
-        </p>
-      </div>
+
+
 
       {/* 2-Column Responsive Dashboard Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

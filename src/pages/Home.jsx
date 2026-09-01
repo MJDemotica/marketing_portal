@@ -149,33 +149,23 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-            Marketing Overview
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Manage team workload and track performance.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExportCSV}
-            disabled={!tasks.length}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-navy-600 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-surface-100 dark:hover:bg-navy-700 transition-colors disabled:opacity-50"
-          >
-            <FileDown size={16} />
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
-          >
-            <Plus size={16} />
-            Create New Task
-          </button>
-        </div>
+      {/* Action buttons */}
+      <div className="flex items-center justify-end gap-3">
+        <button
+          onClick={handleExportCSV}
+          disabled={!tasks.length}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-navy-600 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-surface-100 dark:hover:bg-navy-700 transition-colors disabled:opacity-50"
+        >
+          <FileDown size={16} />
+          Export CSV
+        </button>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors shadow-sm"
+        >
+          <Plus size={16} />
+          Create New Task
+        </button>
       </div>
 
       {/* Capacity and Risk summary cards */}
@@ -449,31 +439,15 @@ function DepartmentHomeDashboard({ tasks, profiles, loading, error, refetch, pro
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 rounded-md bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-xs">
-              {deptName} Portal
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">
-            Marketing Service Requests
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-            Submit marketing requests, track creative deliverables, and collaborate with the Marketing team.
-          </p>
-        </div>
-
-        <div>
-          <button
-            onClick={() => setShowRequestModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold transition-colors shadow-sm"
-          >
-            <Plus size={16} />
-            Request a Task
-          </button>
-        </div>
+      {/* Action buttons */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => setShowRequestModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold transition-colors shadow-sm"
+        >
+          <Plus size={16} />
+          Request a Task
+        </button>
       </div>
 
       {/* Summary Cards */}

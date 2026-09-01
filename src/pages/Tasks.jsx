@@ -111,18 +111,8 @@ export default function Tasks() {
 
   return (
     <div className="space-y-5">
-      {/* Header with view switcher & Create Task button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500">
-            Task Management
-          </p>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white mt-0.5">
-            Tasks & Workflows
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3">
+      {/* Action bar */}
+      <div className="flex items-center justify-end gap-3">
           {/* Create Task button (all Marketing team) */}
           <button
             onClick={() => setShowCreateModal(true)}
@@ -153,7 +143,6 @@ export default function Tasks() {
               )
             })}
           </div>
-        </div>
       </div>
 
       {/* Search bar + status filter pills */}

@@ -108,21 +108,8 @@ export default function Templates() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500">
-            Request Templates
-          </p>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white mt-0.5">
-            Templates Library
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Reusable templates for structuring marketing requests and task briefs.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      {/* Action bar */}
+      <div className="flex items-center justify-end gap-3">
           <button
             onClick={openCreateModal}
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition-colors shadow-sm"
@@ -137,7 +124,6 @@ export default function Templates() {
           >
             <RefreshCw size={14} />
           </button>
-        </div>
       </div>
 
       {/* Error */}
